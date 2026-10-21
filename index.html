@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPS Assessment - Camera &amp; Timer Test</title>
+<style>
+:root{--navy:#0b2545;--teal:#13827a;--bg:#f4f6f9;--card:#fff;--text:#1d2733;--muted:#5d6b7a;--red:#c0392b;--amber:#b9770e;--green:#1e8449;--line:#dde3ea}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--navy);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+header h1{font-size:16px;margin:0}
+.badge{font-size:11px;padding:4px 9px;border-radius:12px;background:var(--teal);white-space:nowrap}
+main{max-width:720px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+h2{font-size:17px;margin:0 0 10px}
+p{font-size:14px;line-height:1.5;margin:6px 0}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input[type=text]{width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;font-size:15px}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin-top:12px;color:var(--text)}
+.chk input{margin-top:2px}
+button{background:var(--navy);color:#fff;border:0;border-radius:6px;padding:12px 16px;font-size:15px;cursor:pointer;width:100%;margin-top:12px}
+button.secondary{background:#fff;color:var(--navy);border:1px solid var(--navy)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.hidden{display:none!important}
+video{width:100%;max-width:320px;border-radius:8px;background:#000;display:block;margin:0 auto}
+video.pip{position:fixed;right:10px;bottom:10px;width:110px;border:2px solid var(--teal);z-index:5;margin:0}
+.meter{height:10px;background:var(--line);border-radius:5px;overflow:hidden;margin-top:6px}
+.meter div{height:100%;width:0;background:var(--green);transition:width .1s}
+.status{font-size:13px;margin-top:8px}
+.ok{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--amber)}
+.timerrow{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:6px 0 14px}
+.bar div{height:100%;background:var(--teal);width:100%}
+.q{font-size:16px;line-height:1.45;margin-bottom:6px}
+.opt{display:block;text-align:left;background:#fff;color:var(--text);border:1px solid var(--line);margin-top:8px;padding:12px;line-height:1.35}
+.opt:hover{border-color:var(--teal)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+td:last-child{text-align:right;font-weight:600}
+.note{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>GPS Assessment &ndash; Camera &amp; Timer Test</h1>
+  <span class="badge" id="modeBadge"></span>
+</header>
+<main>
+
+  <!-- Screen 1: Start -->
+  <section id="sStart" class="card">
+    <h2>Before you start</h2>
+    <p>This is a <b>technical test only</b>. It checks the camera, microphone, question timer and upload speed on this device. The 3 questions are samples.</p>
+    <label for="tester">Your name</label>
+    <input type="text" id="tester" placeholder="e.g. Amal Nath">
+    <div class="chk"><input type="checkbox" id="consent"><span>I agree that my camera, microphone, snapshots and short video clips are recorded during this test and stored in the GPS Google Drive for verification.</span></div>
+    <button id="btnCheck" disabled>Check camera &amp; microphone</button>
+  </section>
+
+  <!-- Screen 2: Device check -->
+  <section id="sCheck" class="card hidden">
+    <h2>Device check</h2>
+    <div id="camWrap"></div>
+    <div class="status" id="camStatus">Requesting camera&hellip;</div>
+    <label>Microphone level (say a few words)</label>
+    <div class="meter"><div id="micLevel"></div></div>
+    <div class="status" id="micStatus">Waiting for sound&hellip;</div>
+    <button id="btnStart" disabled>Start test</button>
+    <button id="btnNoCam" class="secondary hidden">Continue without camera (timer &amp; speed only)</button>
+  </section>
+
+  <!-- Screen 3: Questions -->
+  <section id="sQuiz" class="card hidden">
+    <div class="timerrow"><span id="qNum"></span><span id="qTime"></span></div>
+    <div class="bar"><div id="qBar"></div></div>
+    <div class="q" id="qText"></div>
+    <div class="note" id="qLimit"></div>
+    <div id="qOpts"></div>
+  </section>
+
+  <!-- Screen 4: Results -->
+  <section id="sDone" class="card hidden">
+    <h2 id="doneTitle">Finishing uploads&hellip;</h2>
+    <table id="resTable"></table>
+    <p class="note" id="doneNote"></p>
+  </section>
+
+  <video id="cam" autoplay playsinline muted class="hidden"></video>
+</main>
+
+<script>
+/* ===== Settings ===== */
+// Website version only: paste the Apps Script Web App URL here.
+const ENDPOINT = 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE';
+const MIC_LOUD_LEVEL = 0.08;   // sustained voice/noise level that raises a flag
+const MIC_LOUD_MS = 1500;      // how long it must last
+
+const IS_GAS = typeof google !== 'undefined' && google.script && google.script.run;
+const MODE = IS_GAS ? 'Apps Script only' : 'Website + Apps Script';
+
+/* Sample questions - test only */
+const QUESTIONS = [
+  { text: 'During a lifting operation you notice a damaged sling. What should you do first?',
+    options: ['Stop the lift and report the damaged sling', 'Continue carefully and report it after the lift', 'Use the sling only for lighter loads', 'Wrap the damaged area with tape'],
+    answer: 'Stop the lift and report the damaged sling' },
+  { text: 'The H2S alarm sounds on site. What is the correct response?',
+    options: ['Stop work, don escape set if trained, move upwind to the muster point', 'Move downwind away from the source', 'Wait for the supervisor to give instructions', 'Finish the current task, then evacuate'],
+    answer: 'Stop work, don escape set if trained, move upwind to the muster point' },
+  { text: 'Before excavation near buried services, the supervisor explains that cable detection is complete but the service drawings are more than five years old. What is the safest next step before mechanical digging begins?',
+    options: ['Hand-dig trial pits to confirm the exact service locations', 'Start mechanical digging slowly with a banksman', 'Rely on the cable detector results only', 'Ask the operator to dig shallow first and check'],
+    answer: 'Hand-dig trial pits to confirm the exact service locations' }
+];
+
+/* ===== State ===== */
+const S = {
+  sessionId: 'T' + new Date().toISOString().replace(/\D/g, '').slice(0, 14) + '-' + Math.random().toString(36).slice(2, 6),
+  stream: null, mime: '', ext: 'webm', recorder: null,
+  cameraOK: false, micOK: false, cameraError: '',
+  uploads: [], uploadMs: [], bytes: 0, segments: 0, snapshots: 0, errors: [],
+  micFlags: 0, tabSwitches: 0, inQuiz: false,
+  qi: 0, qStart: 0, limit: 0, tick: null, snapT: null, qDone: false, answers: []
+};
+
+const $ = id => document.getElementById(id);
+$('modeBadge').textContent = MODE;
+
+/* ===== Screen 1 ===== */
+function validateStart() { $('btnCheck').disabled = !($('tester').value.trim() && $('consent').checked); }
+$('tester').addEventListener('input', validateStart);
+$('consent').addEventListener('change', validateStart);
+$('btnCheck').addEventListener('click', startCheck);
+
+/* ===== Screen 2: device check ===== */
+async function startCheck() {
+  show('sCheck');
+  const cam = $('cam');
+  $('camWrap').appendChild(cam);
+  try {
+    S.stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 320 }, height: { ideal: 240 }, facingMode: 'user' },
+      audio: true
+    });
+    cam.srcObject = S.stream;
+    cam.classList.remove('hidden');
+    S.cameraOK = S.stream.getVideoTracks().some(t => t.readyState === 'live');
+    S.mime = pickMime();
+    S.ext = S.mime.indexOf('mp4') > -1 ? 'mp4' : 'webm';
+    setStatus('camStatus', S.cameraOK ? 'ok' : 'bad', S.cameraOK ? 'Camera working \u2713' : 'Camera not delivering video');
+    startMicMonitor();
+    $('btnStart').disabled = !S.cameraOK;
+  } catch (err) {
+    S.cameraError = (err && err.name ? err.name + ': ' : '') + (err && err.message ? err.message : String(err));
+    setStatus('camStatus', 'bad', 'Camera/microphone blocked \u2717 \u2014 ' + S.cameraError);
+    setStatus('micStatus', 'bad', 'Not available');
+    $('btnNoCam').classList.remove('hidden');
+  }
+}
+$('btnStart').addEventListener('click', startQuiz);
+$('btnNoCam').addEventListener('click', startQuiz);
+
+function pickMime() {
+  if (!window.MediaRecorder) return '';
+  const list = ['video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
+  for (const m of list) { if (MediaRecorder.isTypeSupported(m)) return m; }
+  return '';
+}
+
+function startMicMonitor() {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx || !S.stream.getAudioTracks().length) { setStatus('micStatus', 'bad', 'No microphone track'); return; }
+  const ctx = new Ctx();
+  if (ctx.state === 'suspended') ctx.resume();
+  const an = ctx.createAnalyser();
+  an.fftSize = 1024;
+  ctx.createMediaStreamSource(S.stream).connect(an);
+  const buf = new Uint8Array(an.fftSize);
+  let loudSince = 0, flagged = false;
+  (function tick() {
+    an.getByteTimeDomainData(buf);
+    let sum = 0;
+    for (let i = 0; i < buf.length; i++) { const x = (buf[i] - 128) / 128; sum += x * x; }
+    const rms = Math.sqrt(sum / buf.length);
+    $('micLevel').style.width = Math.min(100, rms * 400) + '%';
+    if (!S.micOK && rms > 0.02) { S.micOK = true; setStatus('micStatus', 'ok', 'Microphone working \u2713'); }
+    if (S.inQuiz) {
+      if (rms > MIC_LOUD_LEVEL) {
+        if (!loudSince) loudSince = performance.now();
+        if (!flagged && performance.now() - loudSince > MIC_LOUD_MS) { S.micFlags++; flagged = true; }
+      } else { loudSince = 0; flagged = false; }
+    }
+    requestAnimationFrame(tick);
+  })();
+}
+
+/* ===== Screen 3: questions ===== */
+function startQuiz() {
+  S.inQuiz = true;
+  const el = document.documentElement;
+  if (el.requestFullscreen) { el.requestFullscreen().catch(() => {}); }
+  if (S.stream) { const cam = $('cam'); document.body.appendChild(cam); cam.classList.add('pip'); snapshot('Start'); }
+  show('sQuiz');
+  showQuestion();
+}
+
+document.addEventListener('visibilitychange', () => { if (document.hidden && S.inQuiz) S.tabSwitches++; });
+
+function timeLimit(q) {
+  const words = (q.text + ' ' + q.options.join(' ')).split(/\s+/).length;
+  return Math.min(60, 20 + Math.ceil(words / 8));
+}
+
+function showQuestion() {
+  const q = QUESTIONS[S.qi];
+  S.qDone = false;
+  S.limit = timeLimit(q);
+  S.qStart = Date.now();
+  $('qNum').textContent = 'Question ' + (S.qi + 1) + ' of ' + QUESTIONS.length;
+  $('qText').textContent = q.text;
+  $('qLimit').textContent = 'Time allowed: ' + S.limit + ' s (based on question length)';
+  const box = $('qOpts');
+  box.innerHTML = '';
+  shuffle(q.options.slice()).forEach(opt => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.textContent = opt;
+    b.addEventListener('click', () => finishQuestion(opt));
+    box.appendChild(b);
+  });
+  if (S.stream) {
+    startSegment(S.qi);
+    const at = 3000 + Math.random() * Math.max(1000, (S.limit - 6) * 1000);
+    const label = 'Q' + (S.qi + 1);
+    S.snapT = setTimeout(() => snapshot(label), at);
+  }
+  updateTimer();
+  S.tick = setInterval(updateTimer, 200);
+}
+
+function updateTimer() {
+  const left = Math.max(0, S.limit - (Date.now() - S.qStart) / 1000);
+  $('qTime').textContent = Math.ceil(left) + ' s left';
+  $('qBar').style.width = (left / S.limit * 100) + '%';
+  $('qBar').style.background = left < 5 ? 'var(--red)' : 'var(--teal)';
+  if (left <= 0) finishQuestion(null);
+}
+
+function finishQuestion(choice) {
+  if (S.qDone) return;
+  S.qDone = true;
+  clearInterval(S.tick);
+  clearTimeout(S.snapT);
+  const q = QUESTIONS[S.qi];
+  S.answers.push({ q: S.qi + 1, choice: choice, correct: choice === q.answer, seconds: (Date.now() - S.qStart) / 1000, limit: S.limit });
+  if (S.recorder && S.recorder.state !== 'inactive') S.recorder.stop();
+  S.qi++;
+  setTimeout(() => (S.qi < QUESTIONS.length ? showQuestion() : endQuiz()), 400);
+}
+
+/* ===== Recording, snapshots, uploads ===== */
+function startSegment(index) {
+  if (!window.MediaRecorder) { S.errors.push('MediaRecorder not supported'); return; }
+  const chunks = [];
+  const opts = S.mime ? { mimeType: S.mime, videoBitsPerSecond: 250000, audioBitsPerSecond: 32000 } : {};
+  let rec;
+  try { rec = new MediaRecorder(S.stream, opts); } catch (e) { S.errors.push('Recorder: ' + e.message); return; }
+  rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop = () => {
+    const blob = new Blob(chunks, { type: (rec.mimeType || S.mime || 'video/webm').split(';')[0] });
+    queueUpload(blob, 'Q' + (index + 1) + '_video.' + S.ext, 'video');
+  };
+  rec.start(1000);
+  S.recorder = rec;
+}
+
+function snapshot(label) {
+  const v = $('cam');
+  if (!v.videoWidth) return;
+  const c = document.createElement('canvas');
+  c.width = v.videoWidth;
+  c.height = v.videoHeight;
+  c.getContext('2d').drawImage(v, 0, 0);
+  c.toBlob(b => { if (b) queueUpload(b, label + '_snapshot.jpg', 'snapshot'); }, 'image/jpeg', 0.6);
+}
+
+function queueUpload(blob, fileName, type) {
+  const p = blobToBase64(blob)
+    .then(b64 => send({ kind: 'file', sessionId: S.sessionId, fileName: fileName, mimeType: blob.type || 'application/octet-stream', base64: b64 }))
+    .then(res => {
+      S.uploadMs.push(res.ms);
+      S.bytes += blob.size;
+      if (type === 'video') S.segments++; else S.snapshots++;
+    })
+    .catch(err => S.errors.push(fileName + ': ' + (err && err.message ? err.message : err)));
+  S.uploads.push(p);
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1] || '');
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+
+function send(payload) {
+  const t0 = performance.now();
+  if (IS_GAS) {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(r => resolve({ r: r, ms: performance.now() - t0 }))
+        .withFailureHandler(reject)
+        .saveFromAppsScript(payload);
+    });
+  }
+  return fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+    .then(r => r.json())
+    .then(j => { if (!j.ok) throw new Error(j.error); return { r: j.result, ms: performance.now() - t0 }; });
+}
+
+/* ===== Screen 4: results ===== */
+async function endQuiz() {
+  S.inQuiz = false;
+  show('sDone');
+  const cam = $('cam');
+  cam.classList.add('hidden');
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  await new Promise(r => setTimeout(r, 1500));      // let the last clip finish
+  await Promise.allSettled(S.uploads);
+  if (S.stream) S.stream.getTracks().forEach(t => t.stop());
+
+  const avg = S.uploadMs.length ? S.uploadMs.reduce((a, b) => a + b, 0) / S.uploadMs.length / 1000 : 0;
+  const max = S.uploadMs.length ? Math.max.apply(null, S.uploadMs) / 1000 : 0;
+  const correct = S.answers.filter(a => a.correct).length;
+  const ua = navigator.userAgent;
+  const device = /iPhone|iPad/.test(ua) ? 'iPhone/iPad' : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows PC' : /Mac/.test(ua) ? 'Mac' : 'Other';
+
+  const rows = [
+    ['Mode', MODE], ['Device', device],
+    ['Camera', S.cameraOK ? '\u2713 Working' : '\u2717 Blocked'],
+    ['Microphone', S.micOK ? '\u2713 Working' : '\u2717 Not detected'],
+    ['Questions answered correctly', correct + ' / ' + QUESTIONS.length],
+    ['Time used per question', S.answers.map(a => a.seconds.toFixed(1) + 's of ' + a.limit + 's').join(', ')],
+    ['Video clips saved', S.segments + ' / ' + (S.cameraOK ? QUESTIONS.length : 0)],
+    ['Snapshots saved', String(S.snapshots)],
+    ['Average upload time', avg.toFixed(1) + ' s'],
+    ['Slowest upload', max.toFixed(1) + ' s'],
+    ['Total uploaded', (S.bytes / 1048576).toFixed(2) + ' MB'],
+    ['Microphone flags', String(S.micFlags)],
+    ['Tab / app switches', String(S.tabSwitches)],
+    ['Upload errors', S.errors.length ? S.errors.join('; ') : 'None']
+  ];
+  $('resTable').innerHTML = rows.map(r => '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td></tr>').join('');
+
+  try {
+    await send({
+      kind: 'log', sessionId: S.sessionId, mode: MODE, tester: $('tester').value.trim(), userAgent: device + ' | ' + ua,
+      cameraOK: S.cameraOK, micOK: S.micOK, cameraError: S.cameraError,
+      questions: QUESTIONS.length, correct: correct,
+      avgUploadSec: Number(avg.toFixed(2)), maxUploadSec: Number(max.toFixed(2)), totalMB: Number((S.bytes / 1048576).toFixed(2)),
+      videoSegments: S.segments, snapshots: S.snapshots, micFlags: S.micFlags, tabSwitches: S.tabSwitches, errors: S.errors
+    });
+    $('doneTitle').textContent = 'Test complete \u2713';
+    $('doneNote').textContent = 'Results saved to the test log. Session ID: ' + S.sessionId;
+  } catch (e) {
+    $('doneTitle').textContent = 'Test complete \u2014 log not saved';
+    $('doneNote').textContent = 'Please screenshot this page. Error: ' + (e && e.message ? e.message : e);
+  }
+}
+
+/* ===== Helpers ===== */
+function show(id) { ['sStart', 'sCheck', 'sQuiz', 'sDone'].forEach(s => $(s).classList.toggle('hidden', s !== id)); }
+function setStatus(id, cls, text) { const el = $(id); el.className = 'status ' + cls; el.textContent = text; }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+</script>
+</body>
+</html>
