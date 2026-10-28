@@ -93,7 +93,7 @@ td:last-child{text-align:right;font-weight:600}
 <script>
 /* ===== Settings ===== */
 // Website version only: paste the Apps Script Web App URL here.
-const ENDPOINT = 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE';
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyCPD0FUipoqmG8Uq0K4Jz-J7Vx-U0zZdJeb8sLeQoen3nZYb_98gdVW5YnXunqH8Q/exec';
 const MIC_LOUD_LEVEL = 0.08;   // sustained voice/noise level that raises a flag
 const MIC_LOUD_MS = 1500;      // how long it must last
 
@@ -130,7 +130,7 @@ $('modeBadge').textContent = MODE;
 function validateStart() { $('btnCheck').disabled = !($('tester').value.trim() && $('consent').checked); }
 $('tester').addEventListener('input', validateStart);
 $('consent').addEventListener('change', validateStart);
-$('btnCheck').addEventListener('click', startCheck);
+$('btnCheck').addEventListener('click', () => { try { const C = window.AudioContext || window.webkitAudioContext; if (C) { S.audioCtx = new C(); S.audioCtx.resume(); } } catch (e) {} startCheck(); });
 
 /* ===== Screen 2: device check ===== */
 async function startCheck() {
@@ -170,7 +170,7 @@ function pickMime() {
 function startMicMonitor() {
   const Ctx = window.AudioContext || window.webkitAudioContext;
   if (!Ctx || !S.stream.getAudioTracks().length) { setStatus('micStatus', 'bad', 'No microphone track'); return; }
-  const ctx = new Ctx();
+  const ctx = S.audioCtx || new Ctx();
   if (ctx.state === 'suspended') ctx.resume();
   const an = ctx.createAnalyser();
   an.fftSize = 1024;
@@ -316,7 +316,7 @@ function send(payload) {
     });
   }
   return fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
-    .then(r => r.json())
+    .then(r => r.text().then(t => { try { return JSON.parse(t); } catch (e) { throw new Error('HTTP ' + r.status + ' from ' + r.url + ' :: ' + t.slice(0, 120)); } }))
     .then(j => { if (!j.ok) throw new Error(j.error); return { r: j.result, ms: performance.now() - t0 }; });
 }
 
