@@ -55,12 +55,21 @@ video#cam.pip{position:fixed;right:10px;bottom:10px;width:96px;border:2px solid 
 .progress div{height:100%;background:var(--green);width:0;transition:width .3s}
 .center{text-align:center}
 .note{font-size:12px;color:var(--muted)}
+.verbox{border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0 4px;background:#FFFCFA}
+.verbox .vt{font-weight:600;font-size:14px;margin:0 0 10px}
+.verbox .gbtn{display:flex;justify-content:center;min-height:44px}
+.verbox .or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:12px 0 4px}
+.verbox .or:before,.verbox .or:after{content:"";flex:1;border-top:1px solid var(--line)}
+.verbox .row{display:flex;gap:8px;align-items:flex-end}.verbox .row>div{flex:1}.verbox .row button{width:auto;margin-top:0;padding:12px 14px;white-space:nowrap}
+.verok{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px;background:#EAF5EF;color:#2F6E52;border-radius:8px;padding:10px 12px;font-size:14px}
+.verok span{min-width:0;overflow-wrap:anywhere}.verok a{color:var(--brown);font-size:12px;white-space:nowrap}
+.verbox:has(.verok){padding:0;border:0;background:none}
 .big{font-size:44px;line-height:1;margin:6px 0}
 .warnbox{background:var(--terra);color:var(--terraink);border-left:4px solid var(--amber);border-radius:6px;padding:10px 12px;font-size:13px;font-weight:600;margin:0 0 12px}
 </style>
 </head>
 <body class="noselect">
-<div id="practiceBanner" class="practicebanner hidden">PRACTICE ASSESSMENT &mdash; to learn the system; the result does not count</div>
+<div id="practiceBanner" class="practicebanner hidden">PRACTICE COMPETENCY ASSESSMENT FOR HSE STAFF &mdash; to learn the system; the result does not count</div>
 <div id="testBanner" class="testbanner hidden">TEST ATTEMPT &mdash; not counted in statistics</div>
 <header><h1>GPS HSE Competency Assessment</h1></header>
 <div class="bar-grad"></div>
@@ -69,7 +78,7 @@ video#cam.pip{position:fixed;right:10px;bottom:10px;width:96px;border:2px solid 
   <!-- 0. Request another practice (link in the practice result email) -->
   <section id="sRetry" class="card hidden">
     <h2>Request another practice</h2>
-    <p id="retryText">Click the button below to get a new practice assessment code. It is emailed to you straight away, and you can start it right here.</p>
+    <p id="retryText">Click the button below to get a new Practice Competency Assessment code. It is emailed to you straight away, and you can start it right here.</p>
     <div class="err" id="retryErr"></div>
     <button id="btnRetry">Send me a new practice code</button>
     <button id="btnRetryStart" class="hidden">Start the practice now</button>
@@ -77,23 +86,20 @@ video#cam.pip{position:fixed;right:10px;bottom:10px;width:96px;border:2px solid 
 
   <!-- Practice request from the launch email (?request=practice) -->
   <section id="sReq" class="card hidden">
-    <h2>Practice assessment for HSE staff</h2>
-    <p>Enter your email address. If you are in our HSE staff list, a <b>practice code</b> is emailed to you straight away. The practice works exactly like the real assessment, and the result does not count.</p>
-    <label for="rqEmail">Email address</label>
-    <input type="text" id="rqEmail" inputmode="email" autocomplete="email">
-    <label for="rqId">Employee ID (optional)</label>
-    <input type="text" id="rqId" autocomplete="off">
-    <div id="rqMore" class="hidden">
-      <div class="warnbox" id="rqWhy" style="margin-top:14px"></div>
-      <p>Please tell us a little more:</p>
+    <h2>Practice Competency Assessment for HSE Staff</h2>
+    <p>Confirm your email and fill in your details. If you are in our HSE staff list, a <b>practice code</b> is emailed to you straight away. The practice works exactly like the real assessment, and the result does not count.</p>
+    <div id="rqVer" class="verbox"></div>
+    <div id="rqRest" class="hidden">
       <label for="rqName">Full name</label><input type="text" id="rqName" autocomplete="name">
-      <label for="rqDes">Designation</label><input type="text" id="rqDes" placeholder="e.g. HSE Officer, Site Engineer">
+      <label for="rqDes">Designation</label><input type="text" id="rqDes" placeholder="e.g. HSE Officer, HSE Advisor">
+      <label for="rqId">Employee ID</label><input type="text" id="rqId" autocomplete="off">
+      <label for="rqProj">Project / department (optional)</label><input type="text" id="rqProj">
       <label>Are you HSE staff (working in an HSE role)?</label>
       <div class="chk"><input type="radio" name="rqHse" id="rqHseY" value="yes"><label for="rqHseY" style="margin:0">Yes, I work in HSE</label></div>
       <div class="chk"><input type="radio" name="rqHse" id="rqHseN" value="no"><label for="rqHseN" style="margin:0">No, I am in another role</label></div>
+      <div class="err" id="rqErr"></div>
+      <button id="btnReq">Send me a practice code</button>
     </div>
-    <div class="err" id="rqErr"></div>
-    <button id="btnReq">Send me a practice code</button>
     <p class="note" style="margin-top:12px">Not in an HSE role? Take the short HSE Awareness Quiz instead - use the second button in the email.</p>
   </section>
 
@@ -101,17 +107,20 @@ video#cam.pip{position:fixed;right:10px;bottom:10px;width:96px;border:2px solid 
   <section id="sAw" class="card hidden">
     <h2 id="awTitle">HSE Awareness Quiz</h2>
     <p id="awDesc"></p>
-    <p class="note">For staff who are <b>not</b> in an HSE role. <span id="awCount">10</span> short questions, each with its own timer. One attempt per person. Your score is shown at the end and the questions with the right answers are emailed to you.</p>
-    <label for="awName">Full name</label><input type="text" id="awName" autocomplete="name">
-    <label for="awEmail">Email address</label><input type="text" id="awEmail" inputmode="email" autocomplete="email">
-    <label for="awDes">Designation</label><input type="text" id="awDes" placeholder="e.g. Site Engineer, Accountant, Driver">
-    <label for="awProj">Project / department (optional)</label><input type="text" id="awProj">
-    <label for="awId">Employee ID (optional)</label><input type="text" id="awId" autocomplete="off">
-    <label>Camera and microphone</label>
-    <div class="chk"><input type="radio" name="awCam" id="awCamY" value="yes"><label for="awCamY" style="margin:0">Yes, use my camera and microphone</label></div>
-    <div class="chk"><input type="radio" name="awCam" id="awCamN" value="no" checked><label for="awCamN" style="margin:0">No, take the quiz without them</label></div>
-    <div class="err" id="awErr"></div>
-    <button id="btnAw">Start the quiz</button>
+    <p class="note">For staff who are <b>not</b> in an HSE role. <span id="awCount">10</span> short questions, each with its own timer. One attempt per person.</p>
+    <div class="warnbox hidden" id="awNotReady">This quiz is not ready yet. Please try again later.</div>
+    <div id="awVer" class="verbox"></div>
+    <div id="awRest" class="hidden">
+      <label for="awName">Full name</label><input type="text" id="awName" autocomplete="name">
+      <label for="awDes">Designation</label><input type="text" id="awDes" placeholder="e.g. Site Engineer, Accountant, Driver">
+      <label for="awProj">Project / department (optional)</label><input type="text" id="awProj">
+      <label for="awId">Employee ID (optional)</label><input type="text" id="awId" autocomplete="off">
+      <label>Camera and microphone</label>
+      <div class="chk"><input type="radio" name="awCam" id="awCamY" value="yes"><label for="awCamY" style="margin:0">Yes, use my camera and microphone</label></div>
+      <div class="chk"><input type="radio" name="awCam" id="awCamN" value="no" checked><label for="awCamN" style="margin:0">No, take the quiz without them</label></div>
+      <div class="err" id="awErr"></div>
+      <button id="btnAw">Start the quiz</button>
+    </div>
   </section>
 
   <!-- Pop-up message -->
@@ -236,6 +245,8 @@ video#cam.pip{position:fixed;right:10px;bottom:10px;width:96px;border:2px solid 
 </main>
 
 <script>
+var VER = {};                                              // confirmed email per box ('rq' / 'aw'): { ticket, email, name, how, until }
+var GSI = { loading: null, target: null, cid: undefined };  // Google sign-in
 /* ===== Settings ===== */
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxvddSzFabiMR-6gfXsxmkGDWsbXwxRPuXnFJKFwYLuNt1YKgY3OoLDLfOz4i20o1Jmbw/exec';
 
@@ -282,7 +293,7 @@ async function api(action, data, tries) {
   if (u.get('id')) $('empId').value = u.get('id');
   if (u.get('code')) $('code').value = u.get('code');
   if (u.get('retry')) { $('practiceBanner').classList.remove('hidden'); show('sRetry'); }
-  if (u.get('request')) show('sReq');
+  if (u.get('request')) { show('sReq'); verInit('rq'); }
   if (u.get('aw')) awInit(u.get('aw'));
   if (u.get('selftest')) { S.stToken = u.get('selftest'); $('testBanner').textContent = 'PROCTORING SELF-TEST - nothing is recorded as an assessment'; $('testBanner').classList.remove('hidden'); show('sSelf'); }
 })();
@@ -936,34 +947,107 @@ function popup(title, text, after) {
   $('popOk').onclick = () => { $('popup').classList.add('hidden'); if (after) after(); };
 }
 
+/* ===== Email confirmation: Sign in with Google, or a 6-digit code by email ===== */
+function vesc(x) { return String(x == null ? '' : x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function verLoadGsi(cid) {
+  if (!GSI.loading) GSI.loading = new Promise((res, rej) => {
+    const sc = document.createElement('script'); sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
+  }).then(() => google.accounts.id.initialize({ client_id: cid, callback: r => verGoogle(GSI.target, r.credential), ux_mode: 'popup', auto_select: false }));
+  return GSI.loading;
+}
+async function verInit(p, opt) {
+  opt = opt || {};
+  const box = $(p + 'Ver');
+  box.classList.remove('hidden');
+  let saved = null;
+  try { saved = JSON.parse(sessionStorage.getItem('gpsVer') || 'null'); } catch (e) { saved = null; }
+  if (opt.ticket) saved = opt;
+  if (saved && saved.ticket && saved.until > Date.now()) { verDone(p, saved); return; }
+  box.innerHTML = '<p class="vt">Step 1 &middot; Confirm your email address</p><div class="gbtn" id="' + p + 'G"></div><div class="or" id="' + p + 'Or">or get a code by email</div>' +
+    '<label for="' + p + 'Em">Email address</label><div class="row"><div><input type="text" id="' + p + 'Em" inputmode="email" autocomplete="email"></div><button class="secondary" id="' + p + 'Send">Send code</button></div>' +
+    '<div id="' + p + 'S2" class="hidden"><p class="note" id="' + p + 'Sent" style="margin:8px 0 0"></p><label for="' + p + 'Cd">6-digit code from the email</label>' +
+    '<div class="row"><div><input type="text" id="' + p + 'Cd" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="letter-spacing:4px;font-weight:700"></div><button id="' + p + 'Chk">Confirm</button></div></div>' +
+    '<div class="err" id="' + p + 'VErr"></div>';
+  $(p + 'Send').onclick = () => verSend(p);
+  $(p + 'Chk').onclick = () => verCheck(p);
+  if (opt.clientId !== undefined) GSI.cid = opt.clientId;
+  if (GSI.cid === undefined) { try { GSI.cid = (await api('authInfo', {}, 2)).googleClientId || ''; } catch (e) { GSI.cid = ''; } }
+  if (!GSI.cid) { $(p + 'G').remove(); $(p + 'Or').remove(); return; }
+  try {
+    await verLoadGsi(GSI.cid);
+    GSI.target = p;
+    google.accounts.id.renderButton($(p + 'G'), { theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', width: Math.max(220, Math.min(320, box.clientWidth - 30)) });
+  } catch (e) { $(p + 'G').innerHTML = '<span class="note">Google sign-in could not load here - use the email code below.</span>'; }
+}
+function verErr(p, m) { const e = $(p + 'VErr'); if (e) e.textContent = m || ''; }
+async function verGoogle(p, credential) {
+  verErr(p, '');
+  try { verDone(p, await api('googleSignIn', { credential: credential }, 1)); } catch (e) { verErr(p, e.message); }
+}
+async function verSend(p) {
+  verErr(p, '');
+  const em = $(p + 'Em').value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { verErr(p, 'Enter a valid email address.'); return; }
+  $(p + 'Send').disabled = true;
+  try {
+    const r = await api('sendCode', { email: em }, 1);
+    $(p + 'S2').classList.remove('hidden');
+    $(p + 'Sent').textContent = 'We sent a code to ' + r.email + '. Check your inbox (and spam folder). It is valid for ' + r.minutes + ' minutes.';
+    $(p + 'Send').textContent = 'Resend';
+    $(p + 'Cd').focus();
+  } catch (e) { verErr(p, e.message); }
+  $(p + 'Send').disabled = false;
+}
+async function verCheck(p) {
+  verErr(p, '');
+  $(p + 'Chk').disabled = true;
+  try { verDone(p, await api('verifyCode', { email: $(p + 'Em').value.trim(), code: $(p + 'Cd').value.trim() }, 1)); } catch (e) { verErr(p, e.message); }
+  if ($(p + 'Chk')) $(p + 'Chk').disabled = false;
+}
+function verDone(p, r) {
+  r.until = r.until || Date.now() + 5.5 * 3600000;
+  VER[p] = r;
+  try { sessionStorage.setItem('gpsVer', JSON.stringify(r)); } catch (e) {}
+  $(p + 'Ver').innerHTML = '<div class="verok"><span>&#10003; Email confirmed: <b>' + vesc(r.email) + '</b></span><a href="#" id="' + p + 'Chg">Use another email</a></div>';
+  $(p + 'Chg').onclick = ev => { ev.preventDefault(); verReset(p); };
+  const nm = $(p + 'Name');
+  if (nm && !nm.value && r.name) nm.value = r.name;
+  $(p + 'Rest').classList.remove('hidden');
+}
+function verReset(p) {
+  VER[p] = null;
+  try { sessionStorage.removeItem('gpsVer'); } catch (e) {}
+  $(p + 'Rest').classList.add('hidden');
+  verInit(p);
+}
+function verExpired(m) { return /confirm your email address again/i.test(m || ''); }
+
 /* ===== Practice request (launch email) ===== */
 $('btnReq').addEventListener('click', async () => {
   $('rqErr').textContent = '';
-  const more = !$('rqMore').classList.contains('hidden');
+  const v = VER.rq;
+  if (!v) { $('rqErr').textContent = 'Please confirm your email address first.'; return; }
   const hse = document.querySelector('input[name=rqHse]:checked');
-  const data = { email: $('rqEmail').value.trim(), empId: $('rqId').value.trim() };
-  if (!data.email) { $('rqErr').textContent = 'Enter your email address.'; return; }
-  if (more) {
-    data.name = $('rqName').value.trim(); data.designation = $('rqDes').value.trim(); data.hse = hse ? hse.value : '';
-    if (!data.name || !data.designation || !data.hse) { $('rqErr').textContent = 'Please fill in your name and designation and choose Yes or No.'; return; }
-    data.hse = data.hse === 'yes';
-  }
+  const data = { ticket: v.ticket, name: $('rqName').value.trim(), designation: $('rqDes').value.trim(), empId: $('rqId').value.trim(),
+    project: $('rqProj').value.trim(), hse: hse ? hse.value : '' };
+  if (!data.name || !data.designation || !data.empId || !data.hse) { $('rqErr').textContent = 'Please fill in your name, designation and Employee ID, and choose Yes or No.'; return; }
   $('btnReq').disabled = true;
   try {
     const r = await api('requestPractice', data, 1);
-    if (r.needInfo) {
-      $('rqWhy').textContent = r.reason; $('rqMore').classList.remove('hidden'); $('btnReq').textContent = 'Continue';
-    } else if (r.awareness) {
+    if (r.awareness) {
       if (!r.topic) popup('HSE Awareness Quiz', 'The awareness quiz is not open at the moment. Please try again later.');
       else popup('HSE Awareness Quiz', 'As you are not in an HSE role, please take the short HSE Awareness Quiz instead - no code is needed.', () => {
         history.replaceState(null, '', location.pathname + '?aw=' + encodeURIComponent(r.topic));
-        awInit(r.topic, { name: data.name, email: data.email, designation: data.designation, empId: data.empId });
+        awInit(r.topic, { name: data.name, designation: data.designation, empId: data.empId, project: data.project, ver: v });
       });
     } else {
       popup('Thank you', r.message);
       $('btnReq').classList.add('hidden');
     }
-  } catch (e) { $('rqErr').textContent = e.message; }
+  } catch (e) {
+    if (verExpired(e.message)) verReset('rq');
+    $('rqErr').textContent = e.message;
+  }
   $('btnReq').disabled = false;
 });
 
@@ -973,20 +1057,25 @@ async function awInit(topic, pre) {
   S.awTopic = topic;
   pre = pre || {};
   if (pre.name) $('awName').value = pre.name;
-  if (pre.email) $('awEmail').value = pre.email;
   if (pre.designation) $('awDes').value = pre.designation;
   if (pre.empId) $('awId').value = pre.empId;
+  if (pre.project) $('awProj').value = pre.project;
+  $('awVer').classList.add('hidden');
   try {
     const r = await api('awInfo', { topic: topic }, 2);
     $('awTitle').textContent = r.topic; $('awDesc').textContent = r.description; $('awCount').textContent = r.total;
     S.page = Object.assign({}, r.page || {}, { video: false, snapshots: false, fullscreen: false });
-  } catch (e) { $('awErr').textContent = e.message; $('btnAw').disabled = true; }
+    if (r.ready === false) { $('awNotReady').classList.remove('hidden'); $('awRest').classList.add('hidden'); return; }
+    verInit('aw', Object.assign({ clientId: r.googleClientId || '' }, pre.ver || {}));
+  } catch (e) { $('awNotReady').textContent = e.message; $('awNotReady').classList.remove('hidden'); }
 }
 $('btnAw').addEventListener('click', async () => {
   $('awErr').textContent = '';
+  const v = VER.aw;
+  if (!v) { $('awErr').textContent = 'Please confirm your email address first.'; return; }
   const cam = document.querySelector('input[name=awCam]:checked').value === 'yes';
-  const d = { topic: S.awTopic, name: $('awName').value.trim(), email: $('awEmail').value.trim(), designation: $('awDes').value.trim(), project: $('awProj').value.trim(), empId: $('awId').value.trim(), camera: cam, device: deviceText() };
-  if (!d.name || !d.email || !d.designation) { $('awErr').textContent = 'Please fill in your name, email and designation.'; return; }
+  const d = { topic: S.awTopic, ticket: v.ticket, name: $('awName').value.trim(), designation: $('awDes').value.trim(), project: $('awProj').value.trim(), empId: $('awId').value.trim(), camera: cam, device: deviceText() };
+  if (!d.name || !d.designation) { $('awErr').textContent = 'Please fill in your name and designation.'; return; }
   $('btnAw').disabled = true;
   loading('Preparing your questions…');
   try {
@@ -996,7 +1085,7 @@ $('btnAw').addEventListener('click', async () => {
       try { const C = window.AudioContext || window.webkitAudioContext; if (C && !S.audioCtx) { S.audioCtx = new C(); S.audioCtx.resume(); } } catch (e) {}
       const g = await getMedia();
       S.stream = g.stream;
-      if (S.stream && S.stream.getVideoTracks().length) { const v = $('cam'); v.srcObject = S.stream; v.classList.remove('hidden'); document.body.appendChild(v); v.classList.add('pip'); try { await v.play(); } catch (e) {} }
+      if (S.stream && S.stream.getVideoTracks().length) { const vv = $('cam'); vv.srcObject = S.stream; vv.classList.remove('hidden'); document.body.appendChild(vv); vv.classList.add('pip'); try { await vv.play(); } catch (e) {} }
       if (S.stream && S.stream.getAudioTracks().length) { S.micHist = []; startMic(); await new Promise(res => setTimeout(res, 2500)); micCalibrate(); }
       if (S.stream && S.stream.getVideoTracks().length) { clearInterval(S.camMon); S.camMon = setInterval(camMonitor, 2000); if (S.page.faceCheck !== false) loadFaceLib(); }
     }
@@ -1004,7 +1093,9 @@ $('btnAw').addEventListener('click', async () => {
     if (cam) faceStart();
     awShow();
   } catch (e) {
-    show('sAw'); $('awErr').textContent = e.message;
+    show('sAw');
+    if (verExpired(e.message)) verReset('aw');
+    $('awErr').textContent = e.message;
   }
   $('btnAw').disabled = false;
 });
