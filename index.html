@@ -55,6 +55,7 @@ video#cam.pip{position:fixed;right:10px;bottom:10px;width:96px;border:2px solid 
 .progress div{height:100%;background:var(--green);width:0;transition:width .3s}
 .center{text-align:center}
 .note{font-size:12px;color:var(--muted)}
+html.deep #sLogin{display:none!important}html.deep #sLoading{display:block!important}
 .verbox{border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0 4px;background:#FFFCFA}
 .verbox .vt{font-weight:600;font-size:14px;margin:0 0 10px}
 .verbox .gbtn{display:flex;justify-content:center;min-height:44px}
@@ -62,11 +63,23 @@ video#cam.pip{position:fixed;right:10px;bottom:10px;width:96px;border:2px solid 
 .verbox .or:before,.verbox .or:after{content:"";flex:1;border-top:1px solid var(--line)}
 .verbox .row{display:flex;gap:8px;align-items:flex-end}.verbox .row>div{flex:1}.verbox .row button{width:auto;margin-top:0;padding:12px 14px;white-space:nowrap}
 .verok{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px;background:#EAF5EF;color:#2F6E52;border-radius:8px;padding:10px 12px;font-size:14px}
-.verok span{min-width:0;overflow-wrap:anywhere}.verok a{color:var(--brown);font-size:12px;white-space:nowrap}
+.verok span{min-width:0;overflow-wrap:anywhere}
+.verbox .links{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}.verbox .links a{color:var(--brown)}
+.verbox .sent{background:#EAF5EF;color:#2F6E52;border-radius:8px;padding:10px 12px;font-size:13px;margin-top:10px}
+#thx .tbadge{background:linear-gradient(160deg,#FFF7F0,#FBEDE7);border:1px solid #F0D3C3;border-radius:16px;padding:16px 12px 12px;margin-bottom:12px}
+#thx .ribbon{display:inline-block;background:var(--terra-strong,#C8714E);color:#fff;font-size:11px;font-weight:600;letter-spacing:.1em;padding:4px 12px;border-radius:12px;margin-top:6px}
+#thx .tout{font-family:Poppins,Arial,sans-serif;font-weight:700;font-size:30px;color:#3E8E6A;margin:8px 0 0}#thx .tout.small{font-size:22px}
+#thx .tsub{color:var(--muted);font-size:13px;margin:2px 0 4px}
+#thx .tyt{font-family:Poppins,Arial,sans-serif;font-weight:600;font-size:16px;color:var(--brown);line-height:1.35;margin:4px 0 12px}
+#thx .stars{font-size:34px;letter-spacing:4px;user-select:none;margin:2px 0 6px}#thx .stars span{cursor:pointer;color:#E3D3C8;padding:0 2px}#thx .stars span.on{color:#E0A030}
+#thx textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;font:14px Inter,Arial,sans-serif;min-height:64px;resize:vertical}
+#thx .okfb{background:#EAF5EF;color:#2F6E52;border-radius:8px;padding:12px;font-size:14px;font-weight:600}
+@keyframes thxpop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}#thx svg{animation:thxpop .7s ease-out both}.verok a{color:var(--brown);font-size:12px;white-space:nowrap}
 .verbox:has(.verok){padding:0;border:0;background:none}
 .big{font-size:44px;line-height:1;margin:6px 0}
 .warnbox{background:var(--terra);color:var(--terraink);border-left:4px solid var(--amber);border-radius:6px;padding:10px 12px;font-size:13px;font-weight:600;margin:0 0 12px}
 </style>
+<script>/* links from emails: show the spinner, not the login card, until the page script runs */ if (/[?&](request|aw|fb|retry|selftest)=/.test(location.search)) document.documentElement.className += ' deep';</script>
 </head>
 <body class="noselect">
 <div id="practiceBanner" class="practicebanner hidden">PRACTICE COMPETENCY ASSESSMENT FOR HSE STAFF &mdash; to learn the system; the result does not count</div>
@@ -229,7 +242,8 @@ video#cam.pip{position:fixed;right:10px;bottom:10px;width:96px;border:2px solid 
   <!-- Loading -->
   <section id="sLoading" class="card hidden center">
     <div class="spinner"></div>
-    <p id="loadingText">Loading&hellip;</p>
+    <p id="loadingText" style="font-weight:600">Loading&hellip;</p>
+    <p class="note">This can take a few seconds.</p>
   </section>
 
   <!-- 6. Finish -->
@@ -239,6 +253,29 @@ video#cam.pip{position:fixed;right:10px;bottom:10px;width:96px;border:2px solid 
     <p id="doneText">Please keep this page open while your assessment information is being saved.</p>
     <div class="progress" id="upProg"><div></div></div>
     <p class="note" id="upText"></p>
+    <!-- Thank-you + feedback (Safety Champion badge) -->
+    <div id="thx" class="hidden">
+      <div class="tbadge">
+        <svg width="110" height="110" viewBox="0 0 110 110" aria-hidden="true">
+          <path d="M30 70 L22 104 L40 96 L48 108 L52 76 Z" fill="#C8714E"/><path d="M80 70 L88 104 L70 96 L62 108 L58 76 Z" fill="#A65A3B"/>
+          <circle cx="55" cy="48" r="40" fill="#6B4A3A"/><circle cx="55" cy="48" r="32" fill="#FFF7F0" stroke="#E3B48F" stroke-width="3"/>
+          <path d="M55 24 L59.5 35 L71 35.5 L62 42.5 L65 54 L55 47.5 L45 54 L48 42.5 L39 35.5 L50.5 35 Z" fill="#E0A030"/>
+          <text x="55" y="66" text-anchor="middle" font-family="Poppins,Arial" font-size="7.5" font-weight="700" fill="#6B4A3A">THANK YOU</text>
+        </svg>
+        <div><span class="ribbon">SAFETY CHAMPION</span></div>
+        <div class="tout" id="thxOut"></div>
+        <div class="tsub" id="thxSub"></div>
+      </div>
+      <div class="tyt">Thank you for your participation and commitment in keeping everyone safe</div>
+      <div id="fbBox">
+        <p class="note" style="margin:0">How was this assessment?</p>
+        <div class="stars" id="fbStars"><span data-v="1">&#9733;</span><span data-v="2">&#9733;</span><span data-v="3">&#9733;</span><span data-v="4">&#9733;</span><span data-v="5">&#9733;</span></div>
+        <textarea id="fbCmt" maxlength="1000" placeholder="Any suggestion to improve it? (optional)"></textarea>
+        <div class="err" id="fbErr"></div>
+        <button id="fbSend">Send feedback</button>
+      </div>
+      <div id="fbDone" class="hidden"><div class="okfb">&#10003; Thank you for your feedback! It helps us improve.</div><p class="note" style="margin-top:12px">You can now close this page.</p></div>
+    </div>
   </section>
 
   <video id="cam" autoplay playsinline muted class="hidden"></video>
@@ -295,6 +332,8 @@ async function api(action, data, tries) {
   if (u.get('retry')) { $('practiceBanner').classList.remove('hidden'); show('sRetry'); }
   if (u.get('request')) { show('sReq'); verInit('rq'); }
   if (u.get('aw')) awInit(u.get('aw'));
+  if (u.get('fb')) fbInit(u.get('fb'), u.get('k') || '');
+  document.documentElement.classList.remove('deep');
   if (u.get('selftest')) { S.stToken = u.get('selftest'); $('testBanner').textContent = 'PROCTORING SELF-TEST - nothing is recorded as an assessment'; $('testBanner').classList.remove('hidden'); show('sSelf'); }
 })();
 /* ===== 0. Request another practice ===== */
@@ -924,13 +963,9 @@ async function finish() {
   if (S.stream) S.stream.getTracks().forEach(t => t.stop());
   try {
     const r = await api('finish', { token: S.token }, 3);
-    $('doneIcon').innerHTML = '&#9989;';
-    $('doneTitle').textContent = 'Assessment submitted';
-    let txt = 'Thank you. Your assessment is now under verification. Your result will be emailed to you once the review is complete.';
-    if (r.score !== undefined) txt = 'Your score: ' + r.score + '% (' + r.result + '). ' + txt;
-    $('doneText').textContent = txt;
     $('upProg').firstElementChild.style.width = '100%';
-    $('upText').textContent = 'Saved ✓';
+    if (r.score !== undefined) showThanks(r.score + '%', r.result + ' · your result will be emailed after review', r.fb, 'page');
+    else showThanks('Submitted', 'Your result will be emailed after review', r.fb, 'page', true);
   } catch (e) {
     $('doneIcon').innerHTML = '&#9888;&#65039;';
     $('doneTitle').textContent = 'Could not submit yet';
@@ -939,6 +974,42 @@ async function finish() {
 }
 
 
+
+/* ===== Thank-you + feedback ===== */
+function showThanks(out, sub, fb, from, small) {
+  ['doneIcon', 'doneTitle', 'doneText', 'upProg', 'upText'].forEach(id => $(id).classList.add('hidden'));
+  $('thx').classList.remove('hidden');
+  $('thxOut').textContent = out || ''; $('thxOut').classList.toggle('hidden', !out); $('thxOut').classList.toggle('small', !!small);
+  $('thxSub').textContent = sub || ''; $('thxSub').classList.toggle('hidden', !sub);
+  S.fb = fb || null; S.fbFrom = from || 'page';
+  $('fbBox').classList.toggle('hidden', !S.fb);
+  window.scrollTo(0, 0);
+}
+function fbStars(n) { S.fbRating = n; document.querySelectorAll('#fbStars span').forEach(x => x.classList.toggle('on', Number(x.dataset.v) <= n)); }
+document.querySelectorAll('#fbStars span').forEach(x => x.addEventListener('click', () => { fbStars(Number(x.dataset.v)); $('fbErr').textContent = ''; }));
+$('fbSend').addEventListener('click', async () => {
+  $('fbErr').textContent = '';
+  if (!S.fbRating) { $('fbErr').textContent = 'Please tap 1 to 5 stars first.'; return; }
+  $('fbSend').disabled = true; $('fbSend').textContent = 'Sending…';
+  try {
+    await api('feedback', { id: S.fb.id, k: S.fb.k, rating: S.fbRating, comment: $('fbCmt').value.trim(), from: S.fbFrom }, 2);
+    $('fbBox').classList.add('hidden'); $('fbDone').classList.remove('hidden');
+  } catch (e) { $('fbErr').textContent = e.message; }
+  $('fbSend').disabled = false; $('fbSend').textContent = 'Send feedback';
+});
+/* Feedback page from the "Give feedback" button in an email (?fb=ID&k=KEY) */
+async function fbInit(id, k) {
+  loading('Loading, please wait…');
+  try {
+    const r = await api('fbInfo', { id: id, k: k }, 2);
+    show('sDone');
+    showThanks('', (r.name ? 'Hello ' + r.name + ' · ' : '') + ({ Real: 'HSE Competency Assessment', Practice: 'Practice Competency Assessment', Awareness: 'General HSE Awareness Quiz' }[r.kind] || ''), { id: id, k: k }, 'email');
+    if (r.rating) { fbStars(r.rating); $('fbCmt').value = r.comment || ''; $('fbSend').textContent = 'Update feedback'; }
+  } catch (e) {
+    show('sDone'); $('doneIcon').innerHTML = '&#9888;&#65039;'; $('doneTitle').textContent = 'Link not valid'; $('doneText').textContent = e.message;
+    $('upProg').classList.add('hidden');
+  }
+}
 
 /* ===== Pop-up ===== */
 function popup(title, text, after) {
@@ -963,21 +1034,34 @@ async function verInit(p, opt) {
   try { saved = JSON.parse(sessionStorage.getItem('gpsVer') || 'null'); } catch (e) { saved = null; }
   if (opt.ticket) saved = opt;
   if (saved && saved.ticket && saved.until > Date.now()) { verDone(p, saved); return; }
-  box.innerHTML = '<p class="vt">Step 1 &middot; Confirm your email address</p><div class="gbtn" id="' + p + 'G"></div><div class="or" id="' + p + 'Or">or get a code by email</div>' +
-    '<label for="' + p + 'Em">Email address</label><div class="row"><div><input type="text" id="' + p + 'Em" inputmode="email" autocomplete="email"></div><button class="secondary" id="' + p + 'Send">Send code</button></div>' +
-    '<div id="' + p + 'S2" class="hidden"><p class="note" id="' + p + 'Sent" style="margin:8px 0 0"></p><label for="' + p + 'Cd">6-digit code from the email</label>' +
-    '<div class="row"><div><input type="text" id="' + p + 'Cd" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="letter-spacing:4px;font-weight:700"></div><button id="' + p + 'Chk">Confirm</button></div></div>' +
-    '<div class="err" id="' + p + 'VErr"></div>';
-  $(p + 'Send').onclick = () => verSend(p);
-  $(p + 'Chk').onclick = () => verCheck(p);
+  // One button: "Send me a code", which becomes "Confirm" once the code is sent. Google sign-in is a small link (only when set up).
+  box.innerHTML = '<p class="vt">Step 1 &middot; Confirm your email</p>' +
+    '<label for="' + p + 'Em">Email address</label><input type="text" id="' + p + 'Em" inputmode="email" autocomplete="email">' +
+    '<div id="' + p + 'S2" class="hidden"><div class="sent" id="' + p + 'Sent"></div><label for="' + p + 'Cd">6-digit code</label>' +
+    '<input type="text" id="' + p + 'Cd" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="letter-spacing:4px;font-weight:700"></div>' +
+    '<div class="err" id="' + p + 'VErr"></div>' +
+    '<button id="' + p + 'Btn">Send me a code</button>' +
+    '<div class="links hidden" id="' + p + 'Lk"><a href="#" id="' + p + 'Rs">Resend code</a> &middot; <a href="#" id="' + p + 'Ch">Change email</a></div>' +
+    '<div class="links hidden" id="' + p + 'GL">Have a Google account? <a href="#" id="' + p + 'GA">Sign in with Google instead</a></div><div class="gbtn hidden" id="' + p + 'G" style="margin-top:10px"></div>';
+  S['vs' + p] = 'send';
+  $(p + 'Btn').onclick = () => (S['vs' + p] === 'send' ? verSend(p) : verCheck(p));
+  $(p + 'Em').onkeydown = e => { if (e.key === 'Enter') verSend(p); };
+  $(p + 'Cd').onkeydown = e => { if (e.key === 'Enter') verCheck(p); };
+  $(p + 'Rs').onclick = e => { e.preventDefault(); verSend(p); };
+  $(p + 'Ch').onclick = e => { e.preventDefault(); S['vs' + p] = 'send'; $(p + 'Em').readOnly = false; $(p + 'Cd').value = ''; $(p + 'S2').classList.add('hidden'); $(p + 'Lk').classList.add('hidden'); $(p + 'Btn').textContent = 'Send me a code'; verErr(p, ''); $(p + 'Em').focus(); };
   if (opt.clientId !== undefined) GSI.cid = opt.clientId;
   if (GSI.cid === undefined) { try { GSI.cid = (await api('authInfo', {}, 2)).googleClientId || ''; } catch (e) { GSI.cid = ''; } }
-  if (!GSI.cid) { $(p + 'G').remove(); $(p + 'Or').remove(); return; }
-  try {
-    await verLoadGsi(GSI.cid);
-    GSI.target = p;
-    google.accounts.id.renderButton($(p + 'G'), { theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', width: Math.max(220, Math.min(320, box.clientWidth - 30)) });
-  } catch (e) { $(p + 'G').innerHTML = '<span class="note">Google sign-in could not load here - use the email code below.</span>'; }
+  if (!GSI.cid || !$(p + 'GL')) return;
+  $(p + 'GL').classList.remove('hidden');
+  $(p + 'GA').onclick = async e => {
+    e.preventDefault();
+    $(p + 'GL').classList.add('hidden'); $(p + 'G').classList.remove('hidden');
+    try {
+      await verLoadGsi(GSI.cid);
+      GSI.target = p;
+      google.accounts.id.renderButton($(p + 'G'), { theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', width: Math.max(220, Math.min(320, box.clientWidth - 30)) });
+    } catch (err) { $(p + 'G').innerHTML = '<span class="note">Google sign-in could not load here - please use the email code.</span>'; }
+  };
 }
 function verErr(p, m) { const e = $(p + 'VErr'); if (e) e.textContent = m || ''; }
 async function verGoogle(p, credential) {
@@ -988,21 +1072,27 @@ async function verSend(p) {
   verErr(p, '');
   const em = $(p + 'Em').value.trim();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { verErr(p, 'Enter a valid email address.'); return; }
-  $(p + 'Send').disabled = true;
+  const btn = $(p + 'Btn');
+  btn.disabled = true; btn.textContent = 'Sending…';
   try {
     const r = await api('sendCode', { email: em }, 1);
-    $(p + 'S2').classList.remove('hidden');
-    $(p + 'Sent').textContent = 'We sent a code to ' + r.email + '. Check your inbox (and spam folder). It is valid for ' + r.minutes + ' minutes.';
-    $(p + 'Send').textContent = 'Resend';
+    S['vs' + p] = 'confirm';
+    $(p + 'Em').readOnly = true;
+    $(p + 'S2').classList.remove('hidden'); $(p + 'Lk').classList.remove('hidden');
+    $(p + 'Sent').innerHTML = 'We sent a 6-digit code to <b>' + vesc(r.email) + '</b>. Check your inbox (and spam). It is valid for ' + r.minutes + ' minutes.';
+    btn.textContent = 'Confirm';
     $(p + 'Cd').focus();
-  } catch (e) { verErr(p, e.message); }
-  $(p + 'Send').disabled = false;
+  } catch (e) { verErr(p, e.message); btn.textContent = S['vs' + p] === 'send' ? 'Send me a code' : 'Confirm'; }
+  btn.disabled = false;
 }
 async function verCheck(p) {
   verErr(p, '');
-  $(p + 'Chk').disabled = true;
-  try { verDone(p, await api('verifyCode', { email: $(p + 'Em').value.trim(), code: $(p + 'Cd').value.trim() }, 1)); } catch (e) { verErr(p, e.message); }
-  if ($(p + 'Chk')) $(p + 'Chk').disabled = false;
+  const code = $(p + 'Cd').value.replace(/\D/g, '');
+  if (code.length !== 6) { verErr(p, 'Enter the 6-digit code from the email.'); return; }
+  const btn = $(p + 'Btn');
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try { verDone(p, await api('verifyCode', { email: $(p + 'Em').value.trim(), code: code }, 1)); return; } catch (e) { verErr(p, e.message); }
+  if ($(p + 'Btn')) { btn.disabled = false; btn.textContent = 'Confirm'; }
 }
 function verDone(p, r) {
   r.until = r.until || Date.now() + 5.5 * 3600000;
@@ -1053,7 +1143,6 @@ $('btnReq').addEventListener('click', async () => {
 
 /* ===== General Awareness quiz ===== */
 async function awInit(topic, pre) {
-  show('sAw');
   S.awTopic = topic;
   pre = pre || {};
   if (pre.name) $('awName').value = pre.name;
@@ -1061,13 +1150,15 @@ async function awInit(topic, pre) {
   if (pre.empId) $('awId').value = pre.empId;
   if (pre.project) $('awProj').value = pre.project;
   $('awVer').classList.add('hidden');
+  loading('Loading, please wait…');
   try {
     const r = await api('awInfo', { topic: topic }, 2);
+    show('sAw');
     $('awTitle').textContent = r.topic; $('awDesc').textContent = r.description; $('awCount').textContent = r.total;
     S.page = Object.assign({}, r.page || {}, { video: false, snapshots: false, fullscreen: false });
     if (r.ready === false) { $('awNotReady').classList.remove('hidden'); $('awRest').classList.add('hidden'); return; }
     verInit('aw', Object.assign({ clientId: r.googleClientId || '' }, pre.ver || {}));
-  } catch (e) { $('awNotReady').textContent = e.message; $('awNotReady').classList.remove('hidden'); }
+  } catch (e) { show('sAw'); $('awNotReady').textContent = e.message; $('awNotReady').classList.remove('hidden'); }
 }
 $('btnAw').addEventListener('click', async () => {
   $('awErr').textContent = '';
@@ -1129,9 +1220,7 @@ async function awFinish() {
   $('upProg').classList.add('hidden'); $('upText').classList.add('hidden');
   try {
     const r = await api('awSubmit', { token: S.aw.token, answers: S.aw.answers, flags: S.aw.flags }, 3);
-    $('doneIcon').innerHTML = '&#9989;';
-    $('doneTitle').textContent = 'You answered ' + r.correct + ' of ' + r.total + ' correctly';
-    $('doneText').textContent = 'Thank you for taking the quiz. The questions with your answers and the right answers have been emailed to you, so you can learn from them.';
+    showThanks(r.correct + ' / ' + r.total, Math.round(Number(r.score) || 0) + '% · answers emailed to you', r.fb, 'page');
   } catch (e) {
     $('doneIcon').innerHTML = '&#9888;&#65039;'; $('doneTitle').textContent = 'Could not submit';
     $('doneText').textContent = 'Please check your internet and press the button below to try again. (' + e.message + ')';
